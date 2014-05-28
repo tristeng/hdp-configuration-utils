@@ -1,7 +1,7 @@
-ambari-yarn-utils
+hdp-configuration-utils
 =================
 
-Ambari YARN UTILS.
+hdp-configuration-utils
 
 Use the yarn-utils script to calculate the various parameters for memory in YARN
 and MapReduce 2. 
