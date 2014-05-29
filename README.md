@@ -3,14 +3,14 @@ hdp-configuration-utils
 
 hdp-configuration-utils
 
-Use the yarn-utils script to calculate the various parameters for memory in YARN
-and MapReduce 2. 
+Use the hdp-configuration-utils script to calculate the various parameters for memory in YARN,
+MapReduce 2 and Hive.
 
-./yarn-utils --help for more info.
+./hdp-configuration-utils --help for more info.
 
 Example:
 
-yarn-utils.py -c 16 -m 64 -d 4 -k True
+hdp-configuration-utils.py -c 16 -m 64 -d 4 -k True
 
 
 by default the script uses the following:
