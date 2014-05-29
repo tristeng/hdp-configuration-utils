@@ -66,6 +66,19 @@ def getReservedHBaseMem(memory):
     ret = 2
   return ret
                     
+def getRoundedMemory(memory):
+  denominator = 128
+  if (memory > 4096):
+    denominator = 1024
+  elif (memory > 2048):
+    denominator = 512
+  elif (memory > 1024):
+    denominator = 256 
+  else:
+    denominator = 128
+
+  return int(math.floor(memory/denominator)) * denominator 
+
 def main():
   log = logging.getLogger(__name__)
   out_hdlr = logging.StreamHandler(sys.stdout)
@@ -116,26 +129,44 @@ def main():
            + " reserved=" + str(reservedMem) + "GB" + " usableMem="
            + str(usableMem) + "GB" + " disks=" + str(disks))
 
-  container_ram =  abs(memory/containers)
-  if (container_ram > GB):
-    container_ram = int(math.floor(container_ram / 512)) * 512
+  container_ram =  getRoundedMemory(abs(memory/containers))
   log.info("Num Container=" + str(containers))
   log.info("Container Ram=" + str(container_ram) + "MB")
   log.info("Used Ram=" + str(int (containers*container_ram/float(GB))) + "GB")
   log.info("Unused Ram=" + str(reservedMem) + "GB")
+  
+  ''' YARN Configs '''
   log.info("yarn.scheduler.minimum-allocation-mb=" + str(container_ram))
   log.info("yarn.scheduler.maximum-allocation-mb=" + str(containers*container_ram))
   log.info("yarn.nodemanager.resource.memory-mb=" + str(containers*container_ram))
-  map_memory = math.floor(container_ram / 2)
-  reduce_memory = container_ram
+
+  ''' MapReduce Configs '''
+  map_memory = container_ram 
+  reduce_memory = container_ram 
+  if (container_ram < 2048):
+    reduce_memory = 2 * container_ram
   am_memory = min(map_memory, reduce_memory)
   log.info("mapreduce.map.memory.mb=" + str(int(map_memory)))
-  log.info("mapreduce.map.java.opts=-Xmx" + str(int(0.8 * map_memory)) +"m")
+  log.info("mapreduce.map.java.opts=-Xmx" + str(getRoundedMemory(int(0.8 * map_memory))) +"m")
   log.info("mapreduce.reduce.memory.mb=" + str(int(reduce_memory)))
-  log.info("mapreduce.reduce.java.opts=-Xmx" + str(int(0.8 * reduce_memory)) + "m")
+  log.info("mapreduce.reduce.java.opts=-Xmx" + str(getRoundedMemory(int(0.8 * reduce_memory))) + "m")
   log.info("yarn.app.mapreduce.am.resource.mb=" + str(int(am_memory)))
-  log.info("yarn.app.mapreduce.am.command-opts=-Xmx" + str(int(0.8*am_memory)) + "m")
-  log.info("mapreduce.task.io.sort.mb=" + str(int(min(0.4 * map_memory, 1024))))
+  log.info("yarn.app.mapreduce.am.command-opts=-Xmx" + str(getRoundedMemory(int(0.8*am_memory))) + "m")
+  ''' io.sort.mb cannot be greater than 2047 '''
+  log.info("mapreduce.task.io.sort.mb=" + str(getRoundedMemory(int(min(0.4 * map_memory, 2047)))))
+
+  ''' Tez Configs '''
+  am_memory = max(map_memory, reduce_memory)
+  log.info("tez.am.resource.memory.mb=" + str(int(am_memory)))
+  log.info("tez.am.java.opts=-Xmx" + str(getRoundedMemory(int(0.8*am_memory))) + "m")
+  heap_size = getRoundedMemory(int(0.8 * container_ram))
+  log.info("hive.tez.container.size=" + str(int(container_ram)))
+  log.info("hive.tez.java.opts=-Xmx" + str(heap_size) +"m")
+
+  ''' Hive Configs '''
+  hive_noconditional_task_size = int (getRoundedMemory(int(heap_size*0.33)) * 1024 * 1024)
+  log.info("hive.auto.convert.join.noconditionaltask.size=" + str(hive_noconditional_task_size / 1000 * 1000))
+
   pass
 
 if __name__ == '__main__':
