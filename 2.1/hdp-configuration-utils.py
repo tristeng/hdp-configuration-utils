@@ -25,7 +25,7 @@ import math
 import ast
 
 ''' Reserved for OS + DN + NM,  Map: Memory => Reservation '''
-reservedStack = { 4:1, 8:2, 16:2, 24:4, 48:6, 64:8, 72:8, 96:12, 
+reservedStack = { 4:1, 7:2, 8:2, 16:2, 24:4, 48:6, 64:8, 72:8, 96:12, 
                    128:24, 256:32, 512:64}
 ''' Reserved for HBase. Map: Memory => Reservation '''
   
