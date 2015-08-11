@@ -25,12 +25,12 @@ import math
 import ast
 
 ''' Reserved for OS + DN + NM,  Map: Memory => Reservation '''
-reservedStack = { 4:1, 7:2, 8:2, 16:2, 24:4, 48:6, 64:8, 72:8, 96:12, 
-                   128:24, 256:32, 512:64}
+reservedStack = {4:1, 16:2, 24:4, 48:6, 72:8, 96:12, 128:24, 256:32,
+                 512:64}
+
 ''' Reserved for HBase. Map: Memory => Reservation '''
-  
-reservedHBase = {4:1, 8:1, 16:2, 24:4, 48:8, 64:8, 72:8, 96:16, 
-                   128:24, 256:32, 512:64}
+reservedHBase = {8:1, 16:2, 24:4, 72:8, 96:16, 128:24, 256:32,
+                 512:64}
 GB = 1024
 
 def getMinContainerSize(memory):
@@ -42,7 +42,6 @@ def getMinContainerSize(memory):
     return 1024
   else:
     return 2048
-  pass
 
 def getReservedStackMemory(memory):
   if (reservedStack.has_key(memory)):
@@ -53,6 +52,10 @@ def getReservedStackMemory(memory):
     ret = 64
   else:
     ret = 1
+    for k in sorted(reservedStack.iterkeys()):
+      if (memory <= k):
+        ret = reservedStack[k]
+        break
   return ret
 
 def getReservedHBaseMem(memory):
@@ -64,6 +67,10 @@ def getReservedHBaseMem(memory):
     ret = 64
   else:
     ret = 2
+    for k in sorted(reservedHBase.iterkeys()):
+      if (memory <= k):
+        ret = reservedHBase[k]
+        break
   return ret
                     
 def getRoundedMemory(memory):
@@ -172,8 +179,6 @@ def main():
 
   hive_noconditional_task_size = int (getRoundedMemory(int(heap_size*0.33)) * 1024 * 1024)
   log.info("hive.auto.convert.join.noconditionaltask.size=" + str(hive_noconditional_task_size / 1000 * 1000))
-
-  pass
 
 if __name__ == '__main__':
   try:
