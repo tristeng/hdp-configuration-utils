@@ -61,7 +61,7 @@ def getReservedStackMemory(memory):
 def getReservedHBaseMem(memory):
   if (reservedHBase.has_key(memory)):
     return reservedHBase[memory]
-  if (memory <= 4):
+  if (memory <= 8):
     ret = 1
   elif (memory >= 512):
     ret = 64
